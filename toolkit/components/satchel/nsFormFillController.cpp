@@ -205,6 +205,7 @@ void
 nsFormFillController::NodeWillBeDestroyed(const nsINode* aNode)
 {
   mPwmgrInputs.Remove(aNode);
+  mAutofillInputs.Remove(aNode);
   if (aNode == mListNode) {
     mListNode = nullptr;
     RevalidateDataList();
@@ -219,7 +220,7 @@ nsFormFillController::MaybeRemoveMutationObserver(nsINode* aNode)
 {
   // Nodes being tracked in mPwmgrInputs will have their observers removed when
   // they stop being tracked.
-  if (!mPwmgrInputs.Get(aNode)) {
+  if (!mPwmgrInputs.Get(aNode) && !mAutofillInputs.Get(aNode)) {
     aNode->RemoveMutationObserver(this);
   }
 }
@@ -282,11 +283,25 @@ nsFormFillController::MarkAsLoginManagerField(nsIDOMHTMLInputElement *aInput)
 }
 
 NS_IMETHODIMP
-nsFormFillController::GetFocusedInput(nsIDOMHTMLInputElement** aRetVal) {
-  if (!aRetVal) {
-    return NS_ERROR_INVALID_POINTER;
-  }
+nsFormFillController::MarkAsAutofillField(nsIDOMHTMLInputElement *aInput)
+{
+  /*
+   * Support other components implementing form autofill and handle autocomplete
+   * for the field.
+   */
+  nsCOMPtr<nsINode> node = do_QueryInterface(aInput);
+  NS_ENSURE_STATE(node);
+  mAutofillInputs.Put(node, true);
+  node->AddMutationObserverUnlessExists(this);
+
+  return NS_OK;
+}
+
+NS_IMETHODIMP
+nsFormFillController::GetFocusedInput(nsIDOMHTMLInputElement **aRetVal)
+{
   *aRetVal = mFocusedInput;
+  NS_IF_ADDREF(*aRetVal);
   return NS_OK;
 }
 
@@ -449,7 +464,12 @@ NS_IMETHODIMP nsFormFillController::SetShowImageColumn(bool aShowImageColumn)
 NS_IMETHODIMP
 nsFormFillController::GetShowCommentColumn(bool *aShowCommentColumn)
 {
-  *aShowCommentColumn = false;
+  if (mAutofillInputs.Get(mFocusedInputNode)) {
+    // TODO: check for autofill component
+    *aShowCommentColumn = true;
+  } else {
+    *aShowCommentColumn = false;
+  }
   return NS_OK;
 }
 
@@ -504,7 +524,12 @@ nsFormFillController::GetSearchCount(uint32_t *aSearchCount)
 NS_IMETHODIMP
 nsFormFillController::GetSearchAt(uint32_t index, nsACString & _retval)
 {
-  _retval.AssignLiteral("form-history");
+  if (mAutofillInputs.Get(mFocusedInputNode)) {
+    // TODO: check for autofill component
+    _retval.AssignLiteral("autofill-profiles");
+  } else {
+    _retval.AssignLiteral("form-history");
+  }
   return NS_OK;
 }
 
@@ -893,6 +918,18 @@ void
 nsFormFillController::RemoveForDocument(nsIDocument* aDoc)
 {
   for (auto iter = mPwmgrInputs.Iter(); !iter.Done(); iter.Next()) {
+    const nsINode* key = iter.Key();
+    if (key && (!aDoc || key->OwnerDoc() == aDoc)) {
+      // mFocusedInputNode's observer is tracked separately, so don't remove it
+      // here.
+      if (key != mFocusedInputNode) {
+        const_cast<nsINode*>(key)->RemoveMutationObserver(this);
+      }
+      iter.Remove();
+    }
+  }
+
+  for (auto iter = mAutofillInputs.Iter(); !iter.Done(); iter.Next()) {
     const nsINode* key = iter.Key();
     if (key && (!aDoc || key->OwnerDoc() == aDoc)) {
       // mFocusedInputNode's observer is tracked separately, so don't remove it

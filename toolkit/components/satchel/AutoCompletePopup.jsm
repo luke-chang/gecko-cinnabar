@@ -167,7 +167,7 @@ this.AutoCompletePopup = {
     if (results.length) {
       // Reset fields that were set from the last time the search popup was open
       this.openedPopup.mInput = AutoCompleteResultView;
-      this.openedPopup.showCommentColumn = false;
+      this.openedPopup.showCommentColumn = true;
       this.openedPopup.showImageColumn = false;
       this.openedPopup.addEventListener("popuphidden", this);
       this.openedPopup.addEventListener("popupshowing", this);
