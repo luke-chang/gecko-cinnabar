@@ -59,7 +59,7 @@ FormAutofillHandler.prototype = {
 
       // Exclude elements to which no autocomplete field has been assigned.
       let info = element.getAutocompleteInfo();
-      if (!info.fieldName || ["on", "off"].includes(info.fieldName)) {
+      if (!info || !info.fieldName || ["on", "off"].includes(info.fieldName)) {
         continue;
       }
 

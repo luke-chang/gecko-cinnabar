@@ -6,7 +6,26 @@
 
 /* exported startup, shutdown, install, uninstall */
 
-function startup() {}
-function shutdown() {}
-function install() {}
-function uninstall() {}
+const {classes: Cc, interfaces: Ci, results: Cr, utils: Cu} = Components;
+
+Cu.import("resource://gre/modules/Services.jsm");
+
+function startup() {
+  let enabled = Services.prefs.getBoolPref("dom.forms.autocomplete.experimental");
+  if (!enabled) {
+    return;
+  }
+  Services.mm.loadFrameScript("resource://formautofill/FormAutofillContent.js", true);
+}
+
+function shutdown() {
+
+}
+
+function install() {
+
+}
+
+function uninstall() {
+
+}

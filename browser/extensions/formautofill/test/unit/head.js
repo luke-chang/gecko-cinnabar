@@ -23,6 +23,9 @@ let resHandler = Services.io.getProtocolHandler("resource")
                             .QueryInterface(Ci.nsISubstitutingProtocolHandler);
 let dataURI = NetUtil.newURI(do_get_file(".", true));
 resHandler.setSubstitution("formautofill", dataURI);
+do_register_cleanup(() => {
+  resHandler.setSubstitution("formautofill", null);
+});
 
 // While the previous test file should have deleted all the temporary files it
 // used, on Windows these might still be pending deletion on the physical file
@@ -54,7 +57,7 @@ function getTempFile(leafName) {
   let file = FileUtils.getFile("TmpD", [finalLeafName]);
   do_check_false(file.exists());
 
-  do_register_cleanup(function() {
+  do_register_cleanup(() => {
     if (file.exists()) {
       file.remove(false);
     }
