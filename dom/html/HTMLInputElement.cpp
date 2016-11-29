@@ -5030,6 +5030,15 @@ HTMLInputElement::BindToTree(nsIDocument* aDocument, nsIContent* aParent,
 #endif
   }
 
+  if (IsInComposedDoc()) {
+    AsyncEventDispatcher* dispatcher =
+      new AsyncEventDispatcher(this,
+                               NS_LITERAL_STRING("DOMInputAdded"),
+                               true,
+                               true);
+    dispatcher->PostDOMEvent();
+  }
+
   return rv;
 }
 

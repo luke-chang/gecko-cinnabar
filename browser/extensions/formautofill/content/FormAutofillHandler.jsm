@@ -10,6 +10,11 @@
 
 const {classes: Cc, interfaces: Ci, utils: Cu, results: Cr} = Components;
 
+Cu.import("resource://gre/modules/XPCOMUtils.jsm");
+
+XPCOMUtils.defineLazyModuleGetter(this, "FormAutofillHeuristics",
+                          "resource://formautofill/FormAutofillHeuristics.jsm");
+
 /**
  * Handles profile autofill for a DOM Form element.
  * @param {HTMLFormElement} form Form that need to be auto filled
@@ -52,14 +57,8 @@ FormAutofillHandler.prototype = {
     let autofillData = [];
 
     for (let element of this.form.elements) {
-      // Query the interface and exclude elements that cannot be autocompleted.
-      if (!(element instanceof Ci.nsIDOMHTMLInputElement)) {
-        continue;
-      }
-
-      // Exclude elements to which no autocomplete field has been assigned.
-      let info = element.getAutocompleteInfo();
-      if (!info.fieldName || ["on", "off"].includes(info.fieldName)) {
+      let info = FormAutofillHeuristics.getInfo(element);
+      if (!info) {
         continue;
       }
 
@@ -69,7 +68,7 @@ FormAutofillHandler.prototype = {
                                       f.contactType == info.contactType &&
                                       f.fieldName == info.fieldName)) {
         // A field with the same identifier already exists.
-        return null;
+        continue;
       }
 
       let inputFormat = {

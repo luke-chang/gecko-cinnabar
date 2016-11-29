@@ -281,6 +281,20 @@ nsFormFillController::MarkAsLoginManagerField(nsIDOMHTMLInputElement *aInput)
   return NS_OK;
 }
 
+NS_IMETHODIMP
+nsFormFillController::MarkAsAutofillField(nsIDOMHTMLInputElement *aInput)
+{
+  // TODO
+  return NS_OK;
+}
+
+NS_IMETHODIMP
+nsFormFillController::GetFocusedInput(nsIDOMHTMLInputElement **aRetVal)
+{
+  *aRetVal = mFocusedInput;
+  NS_IF_ADDREF(*aRetVal);
+  return NS_OK;
+}
 
 ////////////////////////////////////////////////////////////////////////
 //// nsIAutoCompleteInput
