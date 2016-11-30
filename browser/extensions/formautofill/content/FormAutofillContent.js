@@ -12,7 +12,10 @@ XPCOMUtils.defineLazyModuleGetter(this, "FormAutofillHandler",
                             "resource://formautofill/FormAutofillHandler.jsm");
 
 const formFillController = Cc["@mozilla.org/satchel/form-fill-controller;1"]
-                           .getService(Ci.nsIFormFillController);
+                             .getService(Ci.nsIFormFillController);
+
+const autoCompleteController = Cc["@mozilla.org/autocomplete/controller;1"]
+                                 .getService(Ci.nsIAutoCompleteController);
 
 const VALID_FIELDS = [
   "organization",
@@ -25,16 +28,42 @@ const VALID_FIELDS = [
   "email",
 ];
 
+function messageManagerFromWindow(win) {
+  return win.QueryInterface(Ci.nsIInterfaceRequestor)
+            .getInterface(Ci.nsIWebNavigation)
+            .QueryInterface(Ci.nsIDocShell)
+            .QueryInterface(Ci.nsIInterfaceRequestor)
+            .getInterface(Ci.nsIContentFrameMessageManager);
+}
+
 function markAutofillField(element) {
+  dump("luke: markAutofillField\n");
+
   let info = element.getAutocompleteInfo();
   if (!info || !info.fieldName || !VALID_FIELDS.includes(info.fieldName)) {
     return;
   }
 
-  formFillController.markAsAutofillField(element);
+  //formFillController.markAsAutofillField(element);
 }
+
+let messageManager = messageManagerFromWindow(content.document.defaultView);
 
 addEventListener("DOMContentLoaded", () => {
   Array.from(content.document.getElementsByTagName("input"))
     .forEach(markAutofillField);
+});
+
+addEventListener("click", () => {
+  let elem = formFillController.getFocusedInput();
+  if (elem) {
+    dump("luke: content: formFillController.getFocusedInput = " + elem.outerHTML + "\n");
+  }
+
+  elem = autoCompleteController.input;
+  if (elem) {
+    dump("luke: content: autoCompleteController.input = " + elem.outerHTML + "\n");
+  }
+
+  messageManager.sendAsyncMessage("FormAutofill:test");
 });

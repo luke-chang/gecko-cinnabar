@@ -9,12 +9,17 @@
 const {classes: Cc, interfaces: Ci, results: Cr, utils: Cu} = Components;
 
 Cu.import("resource://gre/modules/Services.jsm");
+Cu.import("resource://gre/modules/XPCOMUtils.jsm");
+
+XPCOMUtils.defineLazyModuleGetter(this, "FormAutofillParent",
+                            "resource://formautofill/FormAutofillParent.jsm");
 
 function startup() {
   let enabled = Services.prefs.getBoolPref("dom.forms.autocomplete.experimental");
   if (!enabled) {
     return;
   }
+  FormAutofillParent.init();
   Services.mm.loadFrameScript("resource://formautofill/FormAutofillContent.js", true);
 }
 

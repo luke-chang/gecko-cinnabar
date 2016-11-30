@@ -43,4 +43,6 @@ interface nsIFormFillController : nsISupports
    * @param aInput - The HTML <input> element to tag
    */
   void markAsLoginManagerField(in nsIDOMHTMLInputElement aInput);
+
+  nsIDOMHTMLInputElement getFocusedInput();
 };

@@ -56,6 +56,7 @@ let FormAutofillParent = {
     let mm = Cc["@mozilla.org/globalmessagemanager;1"]
                .getService(Ci.nsIMessageListenerManager);
     mm.addMessageListener("FormAutofill:PopulateFieldValues", this);
+    mm.addMessageListener("FormAutofill:test", this);
   },
 
   /**
@@ -66,9 +67,23 @@ let FormAutofillParent = {
    * @param   {nsIFrameMessageManager} message.target Caller's message manager.
    */
   receiveMessage: function({name, data, target}) {
+    dump("luke: receiveMessage: " + name + "\n");
+
     switch (name) {
       case "FormAutofill:PopulateFieldValues":
         this._populateFieldValues(data, target);
+        break;
+      case "FormAutofill:test":
+        let formFillController = Cc["@mozilla.org/satchel/form-fill-controller;1"]
+                                   .getService(Ci.nsIFormFillController);
+        let elem = formFillController.getFocusedInput();
+        dump("luke: parent: formFillController.getFocusedInput = " + elem + "\n");
+
+        let autoCompleteController = Cc["@mozilla.org/autocomplete/controller;1"]
+                                       .getService(Ci.nsIAutoCompleteController);
+        elem = autoCompleteController.input;
+        dump("luke: parent: autoCompleteController.input = " + elem + "\n");
+
         break;
     }
   },
