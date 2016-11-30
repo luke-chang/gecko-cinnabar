@@ -10,7 +10,6 @@ const {classes: Cc, interfaces: Ci, results: Cr, utils: Cu} = Components;
 
 Cu.import("resource://gre/modules/Services.jsm");
 Cu.import("resource://gre/modules/XPCOMUtils.jsm");
-Cu.import("resource://formautofill/ProfileAutocomplete.jsm");
 
 XPCOMUtils.defineLazyModuleGetter(this, "FormAutofillParent",
                             "resource://formautofill/FormAutofillParent.jsm");
@@ -20,14 +19,13 @@ function startup() {
   if (!enabled) {
     return;
   }
-  ProfileAutocomplete.ensureRegistered();
 
   FormAutofillParent.init();
   Services.mm.loadFrameScript("resource://formautofill/FormAutofillContent.js", true);
 }
 
 function shutdown() {
-  ProfileAutocomplete.ensureUnregistered();
+
 }
 
 function install() {

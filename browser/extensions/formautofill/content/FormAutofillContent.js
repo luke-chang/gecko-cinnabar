@@ -8,6 +8,8 @@ const {classes: Cc, interfaces: Ci, utils: Cu, results: Cr} = Components;
 
 Cu.import("resource://gre/modules/XPCOMUtils.jsm");
 
+XPCOMUtils.defineLazyModuleGetter(this, "ProfileAutocomplete",
+                            "resource://formautofill/ProfileAutocomplete.jsm");
 XPCOMUtils.defineLazyModuleGetter(this, "FormAutofillHandler",
                             "resource://formautofill/FormAutofillHandler.jsm");
 
@@ -44,10 +46,12 @@ function markAutofillField(element) {
     return;
   }
 
-  //formFillController.markAsAutofillField(element);
+  formFillController.markAsAutofillField(element);
 }
 
 let messageManager = messageManagerFromWindow(content.document.defaultView);
+
+ProfileAutocomplete.ensureRegistered();
 
 addEventListener("DOMContentLoaded", () => {
   Array.from(content.document.getElementsByTagName("input"))
